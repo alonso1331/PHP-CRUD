@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css" integrity="sha384-zCbKRCUGaJDkqS1kPbPd7TveP5iyJE0EjAuZQTgFLD2ylzuqKfdKlfG/eSrtxUkn" crossorigin="anonymous">
+
+    <title>產品管理後台</title>
+  </head>
+  <body>
+    <div class="container">
+	    <div class="row">
+	    	<div class="col-md-8 offset-2 text-center">
+	    		<table class="table table-borderrd mt-3">
+	    			<thead class="table bg-primary text-light h4">
+	    				<tr>
+	    					<th>編號</th>
+	    					<th>品名</th>
+	    					<th>數量</th>
+	    					<th>建檔時間</th>
+	    					<th>#</th>
+	    				</tr>
+	    			</thead>
+	    			<tbody id="mybody">
+	    				<tr>
+	    					<td>XX</td>
+	    					<td>000</td>
+	    					<td>NNN</td>
+	    					<td>YMD</td>
+	    					<td>
+	    						<a href="#" class="btn btn-outline-success btn-sm mr-2">更新</a>
+	    						<a href="#" class="btn btn-outline-danger btn-sm">刪除</a>
+	    					</td>
+	    				</tr>
+	    			</tbody>
+	    		</table>
+	    	</div>
+	    </div>
+		</div>
+
+		<!-- updataModal -->
+		<div class="modal fade" id="updataModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+		  <div class="modal-dialog">
+		    <div class="modal-content">
+		      <div class="modal-header">
+		        <h5 class="modal-title" id="exampleModalLabel">產品更新</h5>
+		        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+		          <span aria-hidden="true">&times;</span>
+		        </button>
+		      </div>
+		      <div class="modal-body">
+		        <div class="form-group">
+		        	<label for="pname">品名</label>
+		        	<input type="text" id="pname" name="pname" class="form-control">
+		        </div>
+		        <div class="form-group">
+		        	<label for="pnum">數量</label>
+		        	<input type="number" id="pnum" name="pnum" mix="0" class="form-control">
+		        </div>
+		      </div>
+		      <div class="modal-footer">
+		        <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+		        <button type="button" class="btn btn-primary" id="modal_updata_btn">更新</button>
+		      </div>
+		    </div>
+		  </div>
+		</div>
+
+    <!-- Optional JavaScript; choose one of the two! -->
+
+    <!-- Option 1: jQuery and Bootstrap Bundle (includes Popper) -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-fQybjgWLrvvRgtW6bFlB7jaZrFsaBXjsOMm/tB9LTS58ONXgqbR9W8oWht/amnpF" crossorigin="anonymous"></script>
+
+    <script>
+	    var u_id
+	    $(function(){    
+		    //串接後端API
+		    $.ajax({
+	        type: "GET",
+	        url: "20220713-product-select-api.php",
+	        dataType: "json",
+	        anync: false, //非同步
+	        success: showdata,
+	        error: function () {
+	          alert("error-20220713-product-select-api.php");
+	        }
+		    });
+
+		    //delete_btn監聽
+		    $("#mybody #delete_btn").bind("click", function(){
+		    	if(confirm("確認刪除ID:"+$(this).data("id")+"?")){
+		    		console.log($(this).data("id"));
+		    		console.log("test");
+		    		$.ajax({
+		    			type: "POST",
+		    			url: "20220713-product-delete-api.php",
+		    			data: {ID: $(this).data("id")},
+		    			success: showdata_delete,
+		    			error: function(){
+		    				alert("error-20220713-product-delete-api.php")
+		    			}
+		    		});
+		    	}
+		    });
+				
+				//update_btn監聽
+				$("#mybody #update_btn").bind("click", function(){
+					console.log($(this).data("id"));
+					console.log($(this).data("pname"));
+					console.log($(this).data("pnum"));
+				});
+
+
+				//Modal彈跳視窗帶入資料庫的值
+				$('#updateModal').on('show.bs.modal', function (event) {
+				  var button = $(event.relatedTarget) // Button that triggered the modal
+				  var pname = button.data('pname') // Extract info from data-* attributes
+				  var pnum = button.data('pnum')
+				  u_id = button.data('id')
+				  // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
+				  // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
+				  var modal = $(this)
+				  modal.find('.modal-body #pname').val(pname)
+				  modal.find('.modal-body #pnum').val(pnum)
+				})
+
+				//modal_updata_btn監聽
+				$("#modal_updata_btn").bind("click",function(){
+					console.log($("#pname").val());
+					console.log($("#pnum").val());
+
+					$.ajax({
+						tyoe:"POST",
+						url:"20220713-product-update-api.php",
+						data:{ID: u_id, pname: $("pname").val(), pnum}
+					});
+				});
+	    });
+	    function showdata(data){
+	    	console.log(data);
+	    	$("#mybody").empty();
+	    	for(var i=0; i<data.length; i++){
+	    		var strHTML = '<tr><td>'+data[i].ID+'</td><td>'+data[i].Pname+'</td><td>'+data[i].Pnum+'</td><td>'+data[i].creat_at+'</td><td><a href="#" class="btn btn-outline-success btn-sm mr-2" data-id="'+data[i].ID+'" data-pname="'+data[i].Pname+'" data-pnum="'+data[i].Pnum+'" id="update_btn" data-toggle="modal" data-target="#updataModal">更新</a><a href="#" class="btn btn-outline-danger btn-sm" data-id="'+data[i].ID+'" id="delete_btn">刪除</a></td></tr>';
+	    		$("#mybody").append(strHTML);
+	    	}
+	    }
+	    // function showdata(data){
+    	// 	console.log(data);
+    	// 	$("#mybody").empty();
+    	// 	for(var i=0; i<data.length; i++){
+    	// 		var strHTML = '<tr><td>'+data[i].ID+'</td><td>'+data[i].Pname+'</td><td>'+data[i].Pnum+'</td><td>'+data[i].creat_at+'</td><td><a href="#" class="btn btn-sm btn-outline-success mr-2" data-id="'+data[i].ID+'" data-pname="'+data[i].Pname+'" data-pnum="'+data[i].Pnum+'" id="update_btn">更新</a><a href="#" class="btn btn-sm btn-outline-danger" data-id="'+data[i].ID+'" id="delete_btn">刪除</a></td></tr>';
+    	// 		$("#mybody").append(strHTML);
+    	// 	}
+    	// }
+
+    	// 刪除資料後更新頁面
+	    function showdata_delete(data){
+        console.log(data);
+        location.href = "20220713-product-control-panel.html";
+      }
+
+      // 更新資料後更新頁面
+	    function showdata_updata(data){
+        console.log(data);
+        location.href = "20220713-product-control-panel.html";
+      }
+    </script>
+  </body>
+</html>
